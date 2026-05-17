@@ -497,17 +497,136 @@ body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #2a4878; }
+
+/* ── HAMBURGER ── */
+#btn-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 6px;
+  flex-shrink: 0;
+}
+#btn-menu svg { display: block; }
+
+/* ── SIDEBAR BACKDROP ── */
+#sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 40;
+}
+#sidebar-backdrop.show { display: block; }
+
+/* ── RESPONSIVE ── */
+
+/* Tablet (≤1100px) */
+@media (max-width: 1100px) {
+  :root { --panel-w: 280px; }
+  #sidebar { width: 170px; }
+  #header h1 { font-size: 15px; }
+}
+
+/* Mobile (≤768px) */
+@media (max-width: 768px) {
+  /* Header compacto */
+  #header { padding: 0 12px; gap: 10px; height: 52px; }
+  #header h1 { font-size: 13px; letter-spacing: 1px; }
+  #header h1 span { display: none; }
+  #clock { display: none; }
+  .header-badge { font-size: 10px; padding: 2px 7px; }
+  #btn-add { padding: 5px 10px; font-size: 12px; }
+  #btn-menu { display: flex; }
+
+  /* Sidebar: overlay deslizable */
+  #sidebar {
+    position: fixed;
+    left: -210px;
+    top: 52px;
+    height: calc(100dvh - 52px);
+    z-index: 50;
+    width: 200px;
+    transition: left 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+  }
+  #sidebar.open { left: 0; }
+
+  /* Diagrama ocupa todo el ancho */
+  #diagram-wrap {
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Info panel: sube desde abajo */
+  #info-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 70dvh;
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+    overflow-y: auto;
+  }
+  #info-panel.open { transform: translateY(0); }
+
+  /* Asa visual en el panel inferior */
+  #info-panel::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 10px auto 0;
+  }
+
+  /* Botones de acciones más grandes para dedos */
+  .btn { padding: 10px 6px; font-size: 12px; }
+
+  /* Legend scroll horizontal */
+  #legend {
+    overflow-x: auto;
+    gap: 14px;
+    padding: 0 14px;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  #legend .leg-item:last-child { display: none; }
+
+  /* Modal ocupa más pantalla en mobile */
+  #modal { width: calc(100vw - 24px); max-height: 88dvh; }
+}
+
+/* Pantallas muy pequeñas (≤400px) */
+@media (max-width: 400px) {
+  #header h1 { font-size: 11px; }
+  .header-badge { display: none; }
+}
 </style>
 </head>
 <body>
 
 <!-- HEADER -->
 <header id="header">
+  <button id="btn-menu" onclick="toggleSidebar()" aria-label="Menú">
+    <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+      <rect y="4"  width="22" height="2.5" rx="1.25" fill="currentColor"/>
+      <rect y="10" width="22" height="2.5" rx="1.25" fill="currentColor"/>
+      <rect y="16" width="22" height="2.5" rx="1.25" fill="currentColor"/>
+    </svg>
+  </button>
   <h1>⬡ SALA DE MÁQUINAS <span>· NH₃</span></h1>
   <div class="header-badge">NH₃ ACTIVO</div>
   <div id="clock">--:--:--</div>
   <button id="btn-add" onclick="openModal(null)">+ VÁLVULA</button>
 </header>
+<div id="sidebar-backdrop" onclick="toggleSidebar()"></div>
 
 <!-- MAIN -->
 <div id="main">
@@ -1532,6 +1651,22 @@ function updateClock() {
 // Close modal on bg click
 document.getElementById('modal-bg').addEventListener('click', e => {
   if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+
+// ── SIDEBAR TOGGLE (mobile) ──
+function toggleSidebar() {
+  const sidebar  = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  const isOpen   = sidebar.classList.toggle('open');
+  backdrop.classList.toggle('show', isOpen);
+}
+
+// Close sidebar when a filter/valve is clicked on mobile
+document.getElementById('sidebar').addEventListener('click', () => {
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebar-backdrop').classList.remove('show');
+  }
 });
 
 // ═══════════════════════════════════════════════
