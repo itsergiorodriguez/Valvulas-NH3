@@ -29,11 +29,13 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+html { height: 100%; }
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -183,16 +185,19 @@ body {
 #diagram-wrap {
   flex: 1;
   overflow: auto;
+  -webkit-overflow-scrolling: touch;
   position: relative;
   background: var(--bg);
   background-image:
     linear-gradient(rgba(26,51,88,0.15) 1px, transparent 1px),
     linear-gradient(90deg, rgba(26,51,88,0.15) 1px, transparent 1px);
   background-size: 40px 40px;
+  touch-action: pan-x pan-y;
 }
 #diagram-wrap svg {
   display: block;
   min-width: 100%;
+  touch-action: pan-x pan-y;
 }
 
 /* ── INFO PANEL ── */
@@ -476,15 +481,7 @@ body {
 .flow-r { animation: flowRight 0.9s linear infinite; }
 .flow-l { animation: flowLeft  0.9s linear infinite; }
 
-@keyframes wheelSpin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(540deg); }
-}
-.wheel-spin {
-  animation: wheelSpin 1.1s cubic-bezier(0.4,0,0.6,1);
-  transform-box: fill-box;
-  transform-origin: center;
-}
+/* wheel animation handled by JS (cross-browser SVG rotate) */
 
 @keyframes pulse-glow {
   0%,100% { opacity: 0.6; }
@@ -1319,8 +1316,10 @@ function render() {
   }
 
   svg.setAttribute('viewBox', `0 0 ${D.W} ${D.H}`);
-  svg.setAttribute('width', D.W);
-  svg.setAttribute('height', D.H);
+  svg.setAttribute('preserveAspectRatio', 'xMinYMin meet');
+  // width/height controlled by CSS so the SVG scales on mobile
+  svg.style.width  = window.innerWidth < 769 ? '900px' : `${D.W}px`;
+  svg.style.height = 'auto';
   svg.innerHTML = s;
 
   renderSidebar();
@@ -1440,19 +1439,11 @@ function toggleValve(id) {
 
   const opening = v.status === 'closed';
   playValveSound(opening);
-
-  // Spin handwheel
   state.animating.add(id);
-  const wheelEl = document.getElementById(`wheel-${id}`);
-  if (wheelEl) {
-    wheelEl.classList.add('wheel-spin');
-    setTimeout(() => {
-      wheelEl.classList.remove('wheel-spin');
-      state.animating.delete(id);
-    }, 1150);
-  } else {
-    state.animating.delete(id);
-  }
+
+  // JS wheel animation — works on all mobile browsers
+  animateWheelJS(v);
+  setTimeout(() => state.animating.delete(id), 1150);
 
   // Change state after half animation
   setTimeout(() => {
@@ -1462,6 +1453,34 @@ function toggleValve(id) {
     if (state.selected === id) showInfo(id);
     toast(opening ? `✓ V${v.number} abierta` : `✗ V${v.number} cerrada`);
   }, 600);
+}
+
+function animateWheelJS(v) {
+  const wheelEl = document.getElementById(`wheel-${v.id}`);
+  if (!wheelEl) return;
+
+  // Calculate wheel center from valve's pipe position
+  let pipeY;
+  if      (v.system==='alta' && v.type==='impulsion') pipeY = D.altaDiscY;
+  else if (v.system==='alta')                          pipeY = D.altaAspY;
+  else if (v.system==='baja' && v.type==='impulsion') pipeY = D.bajaDiscY;
+  else if (v.system==='baja')                          pipeY = D.bajaAspY;
+  else                                                 pipeY = D.gasY;
+
+  const cx = v.x;
+  const cy = pipeY - 36;
+  const totalDeg = 540;
+  const duration = 1100;
+  const t0 = performance.now();
+
+  function step(now) {
+    const p = Math.min((now - t0) / duration, 1);
+    const eased = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+    wheelEl.setAttribute('transform', `rotate(${eased * totalDeg}, ${cx}, ${cy})`);
+    if (p < 1) requestAnimationFrame(step);
+    else        wheelEl.removeAttribute('transform');
+  }
+  requestAnimationFrame(step);
 }
 
 function setFilter(f, btn) {
