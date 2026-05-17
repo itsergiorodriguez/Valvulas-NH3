@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sala de Máquinas NH₃ · Marfrig</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #06090f;
+  --bg2:       #0b1120;
+  --bg3:       #0f1a30;
+  --border:    #1a3358;
+  --text:      #c0d4f0;
+  --text-dim:  #5577aa;
+  --accent:    #00d4ff;
+  --green:     #00ff88;
+  --red:       #ff3355;
+  --orange:    #ff7700;
+  --amber:     #ffaa00;
+  --blue-lt:   #33aaff;
+  --blue-dk:   #0066cc;
+  --hotgas:    #ff1144;
+  --machine-bg:#0a1428;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-ui:   'Rajdhani', sans-serif;
+  --panel-w:   340px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+#header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 10;
+}
+#header h1 {
+  font-family: var(--font-ui);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 12px rgba(0,212,255,0.5);
+}
+#header h1 span { color: var(--text-dim); font-weight: 400; font-size: 14px; }
+.header-badge {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,17,68,0.12);
+  border: 1px solid rgba(255,17,68,0.4);
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #ff6680;
+}
+.header-badge::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+#clock {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--text-dim);
+  letter-spacing: 2px;
+}
+#btn-add {
+  background: rgba(0,212,255,0.1);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 6px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+#btn-add:hover {
+  background: rgba(0,212,255,0.25);
+  box-shadow: 0 0 12px rgba(0,212,255,0.3);
+}
+
+/* ── MAIN LAYOUT ── */
+#main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── LEFT SIDEBAR ── */
+#sidebar {
+  width: 200px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+.sidebar-section {
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-section h3 {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: all 0.15s;
+  margin-bottom: 2px;
+}
+.filter-btn:hover { background: rgba(255,255,255,0.05); }
+.filter-btn.active {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+  color: var(--accent);
+}
+.filter-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.valve-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.15s;
+}
+.valve-list-item:hover { background: rgba(255,255,255,0.05); }
+.valve-list-item.selected { background: rgba(0,212,255,0.1); }
+.vli-name { font-family: var(--font-mono); font-size: 11px; }
+.vli-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* ── DIAGRAM CONTAINER ── */
+#diagram-wrap {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background: var(--bg);
+  background-image:
+    linear-gradient(rgba(26,51,88,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26,51,88,0.15) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+#diagram-wrap svg {
+  display: block;
+  min-width: 100%;
+}
+
+/* ── INFO PANEL ── */
+#info-panel {
+  width: var(--panel-w);
+  background: var(--bg2);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transform: translateX(var(--panel-w));
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  overflow-y: auto;
+}
+#info-panel.open { transform: translateX(0); }
+#info-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+#info-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+#btn-close-panel {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+#btn-close-panel:hover { color: var(--text); }
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.info-badge.open  { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.4); }
+.info-badge.closed{ background: rgba(255,51,85,0.15); color: var(--red);   border: 1px solid rgba(255,51,85,0.4); }
+.info-badge.future{ background: rgba(85,119,170,0.15); color: var(--text-dim); border: 1px solid rgba(85,119,170,0.4); }
+.info-badge .dot { width:7px;height:7px;border-radius:50%;background:currentColor; }
+
+#info-body { padding: 16px 20px; flex: 1; }
+.info-row {
+  margin-bottom: 14px;
+}
+.info-label {
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.info-value {
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+}
+.info-value.mono { font-family: var(--font-mono); }
+.conn-list {
+  list-style: none;
+}
+.conn-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(26,51,88,0.6);
+  font-size: 13px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--text);
+}
+.conn-list li::before {
+  content: '›';
+  color: var(--accent);
+  font-size: 16px;
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+#info-actions {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+}
+.btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.15s;
+}
+.btn-toggle {
+  background: rgba(0,255,136,0.1);
+  border-color: rgba(0,255,136,0.4);
+  color: var(--green);
+}
+.btn-toggle.closing {
+  background: rgba(255,51,85,0.1);
+  border-color: rgba(255,51,85,0.4);
+  color: var(--red);
+}
+.btn-toggle:hover { filter: brightness(1.3); box-shadow: 0 0 10px currentColor; }
+.btn-edit {
+  background: rgba(0,212,255,0.1);
+  border-color: rgba(0,212,255,0.3);
+  color: var(--accent);
+}
+.btn-edit:hover { background: rgba(0,212,255,0.2); }
+.btn-delete {
+  background: rgba(255,51,85,0.08);
+  border-color: rgba(255,51,85,0.3);
+  color: var(--red);
+}
+.btn-delete:hover { background: rgba(255,51,85,0.2); }
+
+/* ── LEGEND ── */
+#legend {
+  height: 36px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 20px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.leg-item { display: flex; align-items: center; gap: 6px; }
+.leg-line {
+  width: 28px; height: 4px; border-radius: 2px;
+}
+.leg-circle { width: 10px; height: 10px; border-radius: 50%; }
+
+/* ── MODAL ── */
+#modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#modal-bg.show { display: flex; }
+#modal {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+#modal-title {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--accent);
+}
+#modal-body { padding: 20px 24px; }
+.form-group { margin-bottom: 16px; }
+.form-group label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  transition: border-color 0.15s;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+}
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group select option { background: #0f1a30; }
+.form-hint { font-size: 11px; color: var(--text-dim); margin-top: 4px; }
+#modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.btn-cancel {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+}
+.btn-save {
+  padding: 8px 24px;
+  background: rgba(0,212,255,0.15);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+}
+.btn-save:hover { background: rgba(0,212,255,0.3); }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 200;
+  white-space: nowrap;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── SVG ANIMATIONS ── */
+@keyframes flowRight {
+  from { stroke-dashoffset: 40; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes flowLeft {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: 40; }
+}
+.flow-r { animation: flowRight 0.9s linear infinite; }
+.flow-l { animation: flowLeft  0.9s linear infinite; }
+
+@keyframes wheelSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(540deg); }
+}
+.wheel-spin {
+  animation: wheelSpin 1.1s cubic-bezier(0.4,0,0.6,1);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes pulse-glow {
+  0%,100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+.pulse { animation: pulse-glow 2s ease-in-out infinite; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2a4878; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header id="header">
+  <h1>⬡ SALA DE MÁQUINAS <span>· NH₃ · MARFRIG</span></h1>
+  <div class="header-badge">NH₃ ACTIVO</div>
+  <div id="clock">--:--:--</div>
+  <button id="btn-add" onclick="openModal(null)">+ VÁLVULA</button>
+</header>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <h3>Sistema</h3>
+      <button class="filter-btn active" onclick="setFilter('all',this)">
+        <span class="filter-dot" style="background:#4488ff"></span> Todos
+      </button>
+      <button class="filter-btn" onclick="setFilter('alta',this)">
+        <span class="filter-dot" style="background:var(--orange)"></span> Alta Presión
+      </button>
+      <button class="filter-btn" onclick="setFilter('baja',this)">
+        <span class="filter-dot" style="background:var(--blue-lt)"></span> Baja Presión
+      </button>
+      <button class="filter-btn" onclick="setFilter('gas_caliente',this)">
+        <span class="filter-dot" style="background:var(--hotgas)"></span> Gas Caliente
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <h3>Estado</h3>
+      <button class="filter-btn" onclick="setFilter('open',this)">
+        <span class="filter-dot" style="background:var(--green)"></span> Abiertas
+      </button>
+      <button class="filter-btn" onclick="setFilter('closed',this)">
+        <span class="filter-dot" style="background:var(--red)"></span> Cerradas
+      </button>
+    </div>
+    <div class="sidebar-section" style="flex:1">
+      <h3>Válvulas</h3>
+      <div id="valve-list"></div>
+    </div>
+  </div>
+
+  <!-- DIAGRAM -->
+  <div id="diagram-wrap">
+    <svg id="diagram" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <!-- INFO PANEL -->
+  <div id="info-panel">
+    <div id="info-header">
+      <h2 id="info-title">—</h2>
+      <button id="btn-close-panel" onclick="closePanel()">✕</button>
+    </div>
+    <div id="info-body">
+      <div class="info-row">
+        <div class="info-label">Estado</div>
+        <div id="info-status"></div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Sistema</div>
+        <div class="info-value" id="info-system">—</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Tipo</div>
+        <div class="info-value" id="info-type">—</div>
+      </div>
+      <div class="info-row">
+        <div class="info-label">Conecta con</div>
+        <ul class="conn-list" id="info-connections"></ul>
+      </div>
+      <div class="info-row" id="notes-row" style="display:none">
+        <div class="info-label">Notas</div>
+        <div class="info-value" id="info-notes" style="font-size:13px;color:var(--text-dim)">—</div>
+      </div>
+    </div>
+    <div id="info-actions">
+      <button class="btn btn-toggle" id="btn-toggle" onclick="toggleSelectedValve()">ABRIR</button>
+      <button class="btn btn-edit" onclick="openModal(state.selected)">EDITAR</button>
+      <button class="btn btn-delete" onclick="deleteSelected()">✕</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div id="legend">
+  <div class="leg-item"><div class="leg-line" style="background:var(--orange)"></div> Alta Descarga</div>
+  <div class="leg-item"><div class="leg-line" style="background:var(--blue-lt)"></div> Alta Aspiración</div>
+  <div class="leg-item"><div class="leg-line" style="background:var(--amber)"></div> Baja Descarga</div>
+  <div class="leg-item"><div class="leg-line" style="background:var(--blue-dk)"></div> Baja Aspiración</div>
+  <div class="leg-item"><div class="leg-line" style="background:var(--hotgas)"></div> Gas Caliente</div>
+  <div class="leg-item"><div class="leg-circle" style="background:var(--green)"></div> Abierta</div>
+  <div class="leg-item"><div class="leg-circle" style="background:var(--red)"></div> Cerrada</div>
+  <div class="leg-item" style="margin-left:auto;font-family:var(--font-mono)">
+    CLICK: ver info · DOBLE CLICK: abrir/cerrar
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-bg">
+  <div id="modal">
+    <div id="modal-title">VÁLVULA</div>
+    <div id="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="form-group">
+        <label>Número de válvula</label>
+        <input type="number" id="f-number" min="1" placeholder="Ej: 22">
+      </div>
+      <div class="form-group">
+        <label>Nombre / Etiqueta</label>
+        <input type="text" id="f-label" placeholder="Ej: V22 - Alta Impulsión">
+      </div>
+      <div class="form-group">
+        <label>Sistema</label>
+        <select id="f-system">
+          <option value="alta">Alta Presión</option>
+          <option value="baja">Baja Presión</option>
+          <option value="gas_caliente">Gas Caliente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Tipo</label>
+        <select id="f-type">
+          <option value="impulsion">Impulsión / Descarga</option>
+          <option value="aspiracion">Aspiración / Succión</option>
+          <option value="general">General / Derivación</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado inicial</label>
+        <select id="f-status">
+          <option value="open">Abierta</option>
+          <option value="closed">Cerrada</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Conexiones (una por línea)</label>
+        <textarea id="f-connections" placeholder="Cámara 15&#10;Cámara 18&#10;Camarita de faena"></textarea>
+        <div class="form-hint">Escribí cada destino en una línea separada</div>
+      </div>
+      <div class="form-group">
+        <label>Notas adicionales</label>
+        <textarea id="f-notes" placeholder="Información adicional, precauciones, etc."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Posición en diagrama — Columna (X)</label>
+        <input type="number" id="f-x" min="120" max="1380" placeholder="Ej: 400">
+        <div class="form-hint">Posición horizontal en el diagrama (120–1380)</div>
+      </div>
+    </div>
+    <div id="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveValve()">GUARDAR</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  DEFAULT VALVE DATA (from VALVULA DE SALA DE MAQUINA.xls)
+// ═══════════════════════════════════════════════
+const DEFAULT_VALVES = [
+  // ── ALTA PRESIÓN · IMPULSIÓN (descarga) ──
+  {
+    id:'V01', number:1, system:'alta', type:'impulsion', status:'closed', isFuture:true,
+    label:'V1 · Futura', x:210,
+    connections:['Reservada para expansión futura'],
+    notes:'Válvula futura — no conectada actualmente'
+  },
+  {
+    id:'V02', number:2, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V2 · Alta Impulsión', x:330,
+    connections:['Cámara 15','Cámara 18','Cámara 19','Camarita de faena'],
+    notes:'Colector de impulsión de alta — camaras frigoríficas de faena'
+  },
+  {
+    id:'V03', number:3, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V3 · Alta Impulsión', x:460,
+    connections:['Cámara 22','Matadero de emergencia','Salón de cuarteo'],
+    notes:''
+  },
+  {
+    id:'V04', number:4, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V4 · Alta Impulsión', x:590,
+    connections:['Cámaras 24, 25, 26, 27, 28, 29, 30, 31, 32, 33'],
+    notes:''
+  },
+  {
+    id:'V05', number:5, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V5 · Alta Impulsión', x:720,
+    connections:['Planta baja — Cámaras 12 y 13','Equipos de pasillo','Salón de desposte','Porciones','Cámara 4','Empaque'],
+    notes:'Ramal principal a planta baja'
+  },
+  {
+    id:'V06', number:6, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V6 · Alta Impulsión', x:850,
+    connections:['Escamadora','Fábrica de hielo','Saladero de menudencias','Cámara 1','Carnicería'],
+    notes:''
+  },
+  {
+    id:'V07', number:7, system:'alta', type:'impulsion', status:'open', isFuture:false,
+    label:'V7 · Alta Impulsión', x:980,
+    connections:['Saladero kosher'],
+    notes:''
+  },
+  // ── ALTA PRESIÓN · ASPIRACIÓN (succión) ──
+  {
+    id:'V08', number:8, system:'alta', type:'aspiracion', status:'open', isFuture:false,
+    label:'V8 · Alta Aspiración', x:330,
+    connections:['Escamadora','Fábrica de hielo','Saladero de menudencias','Cámara 1'],
+    notes:''
+  },
+  {
+    id:'V09', number:9, system:'alta', type:'aspiracion', status:'open', isFuture:false,
+    label:'V9 · Alta Aspiración', x:460,
+    connections:['Desposte','Cámara 4','Equipo de antecámara'],
+    notes:''
+  },
+  {
+    id:'V10', number:10, system:'alta', type:'aspiracion', status:'open', isFuture:false,
+    label:'V10 · Alta Aspiración', x:590,
+    connections:['Saladero kosher','Cámara de porciones','Cámaras 12 y 13','Equipo de pasillo de túneles','Empaque'],
+    notes:''
+  },
+  {
+    id:'V11', number:11, system:'alta', type:'aspiracion', status:'open', isFuture:false,
+    label:'V11 · Alta Aspiración', x:720,
+    connections:['Cámaras 15, 18 y 19','Faena'],
+    notes:''
+  },
+  {
+    id:'V12', number:12, system:'alta', type:'aspiracion', status:'open', isFuture:false,
+    label:'V12 · Alta Aspiración', x:850,
+    connections:['Cámaras 22, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33','Cuarteo','Matadero de emergencia'],
+    notes:''
+  },
+  {
+    id:'V13', number:13, system:'alta', type:'general', status:'closed', isFuture:false,
+    label:'V13 · Unión Alta-Baja', x:1090,
+    connections:['Une presiones de aspiración de ALTA y BAJA'],
+    notes:'Válvula de unión entre el colector de aspiración de alta y el de baja — abrir solo en procedimientos específicos'
+  },
+  // ── BAJA PRESIÓN · IMPULSIÓN ──
+  {
+    id:'V14', number:14, system:'baja', type:'impulsion', status:'open', isFuture:false,
+    label:'V14 · Baja Impulsión', x:230,
+    connections:['Túnel 3','Cámara 4'],
+    notes:''
+  },
+  {
+    id:'V15', number:15, system:'baja', type:'impulsion', status:'open', isFuture:false,
+    label:'V15 · Baja Impulsión', x:370,
+    connections:['Congeladora de placas','Túnel 2'],
+    notes:''
+  },
+  {
+    id:'V16', number:16, system:'baja', type:'impulsion', status:'open', isFuture:false,
+    label:'V16 · Baja Impulsión', x:510,
+    connections:['Túnel 7','Túnel 8','Túnel 9','Túnel 10'],
+    notes:'Válvula general frente a pasillo de túneles'
+  },
+  {
+    id:'V17', number:17, system:'baja', type:'impulsion', status:'open', isFuture:false,
+    label:'V17 · Baja Impulsión', x:650,
+    connections:['Túnel 11','Túnel 14'],
+    notes:''
+  },
+  // ── BAJA PRESIÓN · ASPIRACIÓN ──
+  {
+    id:'V18', number:18, system:'baja', type:'aspiracion', status:'open', isFuture:false,
+    label:'V18 · Baja Aspiración', x:230,
+    connections:['Túneles 7, 8, 9 y 10'],
+    notes:''
+  },
+  {
+    id:'V19', number:19, system:'baja', type:'aspiracion', status:'open', isFuture:false,
+    label:'V19 · Baja Aspiración', x:370,
+    connections:['Túneles 11 y 14'],
+    notes:''
+  },
+  {
+    id:'V20', number:20, system:'baja', type:'aspiracion', status:'open', isFuture:false,
+    label:'V20 · Baja Aspiración', x:510,
+    connections:['Congeladora de placas','Túnel 2'],
+    notes:''
+  },
+  {
+    id:'V21', number:21, system:'baja', type:'aspiracion', status:'open', isFuture:false,
+    label:'V21 · Baja Aspiración', x:650,
+    connections:['Túnel 3','Cámara 4'],
+    notes:''
+  },
+  // ── GAS CALIENTE ──
+  {
+    id:'VGC1', number:'GC1', system:'gas_caliente', type:'general', status:'closed', isFuture:false,
+    label:'GC1 · Gas Caliente General', x:300,
+    connections:['Válvula general de gas caliente','Desde descarga de alta'],
+    notes:'Abrir solo para deshielo — gas caliente a alta presión y temperatura'
+  },
+  {
+    id:'VGC2', number:'GC2', system:'gas_caliente', type:'general', status:'closed', isFuture:false,
+    label:'GC2 · Gas Caliente', x:430,
+    connections:['Escamadora de hielo'],
+    notes:'Deshielo por gas caliente'
+  },
+  {
+    id:'VGC3', number:'GC3', system:'gas_caliente', type:'general', status:'closed', isFuture:false,
+    label:'GC3 · Gas Caliente', x:560,
+    connections:['Cámaras 3 y 4','Cámara 15'],
+    notes:'Deshielo por gas caliente'
+  },
+  {
+    id:'VGC4', number:'GC4', system:'gas_caliente', type:'general', status:'closed', isFuture:false,
+    label:'GC4 · Gas Caliente', x:690,
+    connections:['Túnel 7','Equipo de pasillo de túneles'],
+    notes:'Deshielo por gas caliente'
+  },
+  {
+    id:'VGC5', number:'GC5', system:'gas_caliente', type:'general', status:'closed', isFuture:false,
+    label:'GC5 · Gas Caliente', x:820,
+    connections:['Módulo A — Túnel 14','Módulo B — Túnel 11'],
+    notes:'Retorno de gas a separador; deshielo módulos A y B'
+  },
+];
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const state = {
+  valves: [],
+  selected: null,
+  filter: 'all',
+  animating: new Set(),
+};
+
+// ═══════════════════════════════════════════════
+//  PERSISTENCE
+// ═══════════════════════════════════════════════
+function loadData() {
+  try {
+    const saved = localStorage.getItem('nh3_valves_v2');
+    state.valves = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(DEFAULT_VALVES));
+  } catch { state.valves = JSON.parse(JSON.stringify(DEFAULT_VALVES)); }
+}
+function saveData() {
+  localStorage.setItem('nh3_valves_v2', JSON.stringify(state.valves));
+}
+
+// ═══════════════════════════════════════════════
+//  DIAGRAM CONFIG
+// ═══════════════════════════════════════════════
+const D = {
+  W: 1400, H: 560,
+  machineX: 10, machineY: 40, machineW: 100, machineH: 480,
+  // Alta system rows
+  altaDiscY: 110,   // discharge pipe y
+  altaAspY:  220,   // suction/aspiration pipe y
+  altaEquipY:165,   // equipment midpoint
+  // Baja system rows
+  bajaDiscY: 380,
+  bajaAspY:  470,
+  bajaEquipY:425,
+  // Gas caliente
+  gasY: 305,
+  // Pipe x extents
+  pipeX1: 110, pipeX2: 1360,
+  bajaPipeX2: 780,
+  gasPipeX2: 900,
+};
+
+// Pipe colors
+const PC = {
+  alta_disc: '#ff7700',
+  alta_asp:  '#33aaff',
+  baja_disc: '#ffaa00',
+  baja_asp:  '#0077cc',
+  gas:       '#ff1144',
+};
+
+// ═══════════════════════════════════════════════
+//  SVG HELPERS
+// ═══════════════════════════════════════════════
+function svgEl(tag, attrs = {}, inner = '') {
+  const a = Object.entries(attrs).map(([k,v]) => `${k}="${v}"`).join(' ');
+  return `<${tag} ${a}>${inner}</${tag}>`;
+}
+
+function pipeLine(x1, y1, x2, y2, color, w=8, flow=false, dir='r') {
+  const baseOpacity = 0.35;
+  const pipe = svgEl('line', {
+    x1,y1,x2,y2,
+    stroke: color,
+    'stroke-width': w,
+    'stroke-linecap': 'round',
+    opacity: baseOpacity
+  });
+  if (!flow) return pipe;
+  const flowLine = svgEl('line', {
+    x1,y1,x2,y2,
+    stroke: color,
+    'stroke-width': w * 0.5,
+    'stroke-linecap': 'round',
+    'stroke-dasharray': '22 10',
+    opacity: 0.85,
+    class: dir === 'r' ? 'flow-r' : 'flow-l'
+  });
+  return pipe + flowLine;
+}
+
+function valveSVG(v) {
+  const { x, isFuture } = v;
+  const isAlta = v.system === 'alta';
+  const isBaja = v.system === 'baja';
+  const isGas  = v.system === 'gas_caliente';
+
+  let cy;
+  if (isAlta && v.type === 'impulsion') cy = D.altaDiscY;
+  else if (isAlta && v.type === 'aspiracion') cy = D.altaAspY;
+  else if (isBaja && v.type === 'impulsion') cy = D.bajaDiscY;
+  else if (isBaja && v.type === 'aspiracion') cy = D.bajaAspY;
+  else if (isGas) cy = D.gasY;
+  else cy = D.gasY;
+
+  const isOpen   = v.status === 'open';
+  const color    = isFuture ? '#445577' : isOpen ? '#00ff88' : '#ff3355';
+  const glow     = isFuture ? 'none' : isOpen ? 'url(#glow-green)' : 'url(#glow-red)';
+  const gap      = isOpen ? 7 : 0;
+
+  // Pipe connections within the valve group
+  const pipeL = svgEl('line',{x1:x-28,y1:cy,x2:x-12+gap,y2:cy,stroke:color,'stroke-width':6,'stroke-linecap':'round',opacity:0.8});
+  const pipeR = svgEl('line',{x1:x+12-gap,y1:cy,x2:x+28,y2:cy,stroke:color,'stroke-width':6,'stroke-linecap':'round',opacity:0.8});
+
+  // Two triangles (gate valve symbol)
+  const triL = svgEl('polygon',{
+    points:`${x-14+gap},${cy-11} ${x+gap},${cy} ${x-14+gap},${cy+11}`,
+    fill:color, filter:glow, opacity:0.95
+  });
+  const triR = svgEl('polygon',{
+    points:`${x+14-gap},${cy-11} ${x-gap},${cy} ${x+14-gap},${cy+11}`,
+    fill:color, filter:glow, opacity:0.95
+  });
+
+  // Stem
+  const stem = svgEl('line',{x1:x,y1:cy-11,x2:x,y2:cy-30,stroke:color,'stroke-width':2.5,'stroke-linecap':'round'});
+
+  // Handwheel
+  const wheelId = `wheel-${v.id}`;
+  const wheel = svgEl('g',{id:wheelId},
+    svgEl('circle',{cx:x,cy:cy-36,r:11,fill:'none',stroke:color,'stroke-width':2.5,filter:glow}) +
+    svgEl('line',{x1:x-11,y1:cy-36,x2:x+11,y2:cy-36,stroke:color,'stroke-width':1.8}) +
+    svgEl('line',{x1:x,y1:cy-47,x2:x,y2:cy-25,stroke:color,'stroke-width':1.8}) +
+    svgEl('circle',{cx:x,cy:cy-36,r:3,fill:color})
+  );
+
+  // Status dot (pulsing when open)
+  const dot = svgEl('circle',{
+    cx:x+13, cy:cy-44, r:4,
+    fill:color,
+    class: isOpen && !isFuture ? 'pulse' : '',
+    filter: glow
+  });
+
+  // Number label
+  const label = svgEl('text',{
+    x,y:cy+28,
+    'text-anchor':'middle',
+    fill:color,
+    'font-family':'Share Tech Mono,monospace',
+    'font-size':12,
+    opacity:0.9
+  },`V${v.number}`);
+
+  const hitarea = svgEl('rect',{
+    x:x-30,y:cy-52,width:60,height:90,
+    fill:'transparent',
+    style:'cursor:pointer'
+  });
+
+  return svgEl('g',{
+    id:`vg-${v.id}`,
+    class:'valve-group',
+    onclick:`handleClick('${v.id}')`,
+    ondblclick:`handleDblClick('${v.id}')`,
+    title:v.label
+  }, hitarea + pipeL + pipeR + triL + triR + stem + wheel + dot + label);
+}
+
+function equipmentNode(x, y, label, color) {
+  const words = label.split(' ');
+  const lines = [];
+  let cur = '';
+  for (const w of words) {
+    if ((cur+w).length > 14 && cur) { lines.push(cur.trim()); cur = w + ' '; }
+    else cur += w + ' ';
+  }
+  if (cur.trim()) lines.push(cur.trim());
+
+  const h = Math.max(22, lines.length * 14 + 8);
+  const rect = svgEl('rect',{
+    x:x-36,y:y-h/2,width:72,height:h,rx:3,
+    fill:`rgba(${hexToRgb(color)},0.12)`,
+    stroke:color,'stroke-width':1,opacity:0.7
+  });
+  const text = lines.map((l,i) =>
+    svgEl('text',{
+      x,y:y - (lines.length-1)*7 + i*13,
+      'text-anchor':'middle',
+      fill:color,
+      'font-family':'Rajdhani,sans-serif',
+      'font-size':9,
+      opacity:0.85
+    },l)
+  ).join('');
+  return rect + text;
+}
+
+function hexToRgb(hex) {
+  const m = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  return m ? `${parseInt(m[1],16)},${parseInt(m[2],16)},${parseInt(m[3],16)}` : '128,128,128';
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER DIAGRAM
+// ═══════════════════════════════════════════════
+function render() {
+  const svg = document.getElementById('diagram');
+  const filter = state.filter;
+
+  function visible(v) {
+    if (filter === 'all') return true;
+    if (filter === 'open' || filter === 'closed') return v.status === filter;
+    return v.system === filter;
+  }
+
+  const altaDisc = state.valves.filter(v => v.system==='alta' && v.type==='impulsion');
+  const altaAsp  = state.valves.filter(v => v.system==='alta' && (v.type==='aspiracion'||v.type==='general'));
+  const bajaDisc = state.valves.filter(v => v.system==='baja' && v.type==='impulsion');
+  const bajaAsp  = state.valves.filter(v => v.system==='baja' && v.type==='aspiracion');
+  const gasC     = state.valves.filter(v => v.system==='gas_caliente');
+  const v13      = state.valves.find(v => v.id==='V13');
+
+  const altaDiscFlow = altaDisc.some(v=>v.status==='open');
+  const altaAspFlow  = altaAsp.some(v=>v.status==='open');
+  const bajaDiscFlow = bajaDisc.some(v=>v.status==='open');
+  const bajaAspFlow  = bajaAsp.some(v=>v.status==='open');
+  const gasFlow      = gasC.some(v=>v.status==='open');
+  const v13Open      = v13 && v13.status==='open';
+
+  let s = '';
+
+  // ── DEFS ──
+  s += `<defs>
+    <filter id="glow-green" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-red" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-blue" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="machineGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0a1428"/>
+      <stop offset="100%" stop-color="#0d1e3a"/>
+    </linearGradient>
+  </defs>`;
+
+  // ── BACKGROUND ──
+  s += svgEl('rect',{x:0,y:0,width:D.W,height:D.H,fill:'#06090f'});
+
+  // ── MACHINE ROOM ──
+  s += svgEl('rect',{
+    x:D.machineX,y:D.machineY,width:D.machineW,height:D.machineH,
+    fill:'url(#machineGrad)',stroke:'#1e3a5f','stroke-width':1.5,rx:4
+  });
+  s += svgEl('text',{
+    x:D.machineX+D.machineW/2, y:D.machineY+22,
+    'text-anchor':'middle',fill:'#4488ff',
+    'font-family':'Share Tech Mono,monospace','font-size':10,
+    'letter-spacing':1
+  },'SALA DE');
+  s += svgEl('text',{
+    x:D.machineX+D.machineW/2, y:D.machineY+36,
+    'text-anchor':'middle',fill:'#4488ff',
+    'font-family':'Share Tech Mono,monospace','font-size':10,
+    'letter-spacing':1
+  },'MÁQUINAS');
+  // Compressor symbols
+  [140,220,295,370,440].forEach(cy => {
+    s += svgEl('circle',{cx:60,cy,r:16,fill:'none',stroke:'#1e3a5f','stroke-width':1.5});
+    s += svgEl('text',{cx:60,cy,x:60,y:cy+4,'text-anchor':'middle',fill:'#2a4878','font-family':'Share Tech Mono,monospace','font-size':9},'⚙');
+  });
+
+  // ── SECTION LABELS ──
+  const sLabel = (x,y,txt,color) => svgEl('text',{x,y,'text-anchor':'middle',fill:color,
+    'font-family':'Rajdhani,sans-serif','font-size':11,'font-weight':700,'letter-spacing':2,opacity:0.7},txt);
+  s += sLabel(700, 60, 'SISTEMA DE ALTA PRESIÓN', '#ff9944');
+  s += sLabel(500, 340, 'SISTEMA DE BAJA PRESIÓN', '#44aaff');
+  s += sLabel(500, 280, 'GAS CALIENTE · DESHIELO', '#ff4466');
+
+  // ── ALTA MAIN PIPES ──
+  s += pipeLine(D.pipeX1, D.altaDiscY, D.pipeX2, D.altaDiscY, PC.alta_disc, 10, altaDiscFlow, 'r');
+  s += pipeLine(D.pipeX1, D.altaAspY,  D.pipeX2, D.altaAspY,  PC.alta_asp,  10, altaAspFlow, 'l');
+
+  // Pipe labels at left
+  const pipeLabel = (x,y,txt,color) => svgEl('text',{x,y,fill:color,
+    'font-family':'Share Tech Mono,monospace','font-size':9,'letter-spacing':1,opacity:0.7},txt);
+  s += pipeLabel(115, D.altaDiscY-14, 'IMPULSIÓN ALTA', PC.alta_disc);
+  s += pipeLabel(115, D.altaAspY+18, 'ASPIRACIÓN ALTA', PC.alta_asp);
+  s += pipeLabel(115, D.bajaDiscY-14, 'IMPULSIÓN BAJA', PC.baja_disc);
+  s += pipeLabel(115, D.bajaAspY+18, 'ASPIRACIÓN BAJA', PC.baja_asp);
+  s += pipeLabel(115, D.gasY-12, 'GAS CALIENTE', PC.gas);
+
+  // V13 crossover (vertical line connecting alta asp to baja asp)
+  if (v13) {
+    const cx = v13.x;
+    s += pipeLine(cx, D.altaAspY, cx, D.bajaAspY, v13Open ? '#00ff88' : '#445577', 5, v13Open, 'r');
+    s += svgEl('text',{x:cx+8,y:(D.altaAspY+D.bajaAspY)/2,
+      fill:'#445577','font-family':'Share Tech Mono,monospace','font-size':9,opacity:0.8},'V13');
+  }
+
+  // ── BAJA MAIN PIPES ──
+  s += pipeLine(D.pipeX1, D.bajaDiscY, D.bajaPipeX2, D.bajaDiscY, PC.baja_disc, 10, bajaDiscFlow, 'r');
+  s += pipeLine(D.pipeX1, D.bajaAspY,  D.bajaPipeX2, D.bajaAspY,  PC.baja_asp,  10, bajaAspFlow, 'l');
+
+  // ── GAS CALIENTE PIPE ──
+  s += pipeLine(D.pipeX1, D.gasY, D.gasPipeX2, D.gasY, PC.gas, 7, gasFlow, 'r');
+
+  // ── BRANCH LINES + EQUIPMENT NODES ──
+  // Alta discharge valves — branch DOWN to equip midpoint
+  altaDisc.forEach(v => {
+    if (v.id === 'V13') return;
+    const flow = v.status === 'open';
+    const color = v.isFuture ? '#445577' : PC.alta_disc;
+    s += pipeLine(v.x, D.altaDiscY+5, v.x, D.altaEquipY, color, 3, flow, 'r');
+    if (!v.isFuture) {
+      const lbl = v.connections[0] || '';
+      s += equipmentNode(v.x, D.altaEquipY+20, lbl, color);
+    }
+  });
+
+  // Alta aspiration valves — branch UP to equip midpoint
+  altaAsp.forEach(v => {
+    if (v.id === 'V13') return;
+    const flow = v.status === 'open';
+    const color = PC.alta_asp;
+    s += pipeLine(v.x, D.altaAspY-5, v.x, D.altaEquipY+55, color, 3, flow, 'l');
+  });
+
+  // Baja discharge valves — branch DOWN
+  bajaDisc.forEach(v => {
+    const flow = v.status === 'open';
+    s += pipeLine(v.x, D.bajaDiscY+5, v.x, D.bajaEquipY, PC.baja_disc, 3, flow, 'r');
+    const lbl = v.connections[0] || '';
+    s += equipmentNode(v.x, D.bajaEquipY+16, lbl, PC.baja_disc);
+  });
+
+  // Baja aspiration valves — branch UP
+  bajaAsp.forEach(v => {
+    const flow = v.status === 'open';
+    s += pipeLine(v.x, D.bajaAspY-5, v.x, D.bajaEquipY+38, PC.baja_asp, 3, flow, 'l');
+  });
+
+  // Gas caliente valves — branch DOWN
+  gasC.forEach(v => {
+    const flow = v.status === 'open';
+    s += pipeLine(v.x, D.gasY+4, v.x, D.gasY+36, PC.gas, 3, flow, 'r');
+    const lbl = v.connections[0] || '';
+    s += svgEl('text',{x:v.x,y:D.gasY+54,'text-anchor':'middle',fill:PC.gas,
+      'font-family':'Rajdhani,sans-serif','font-size':9,opacity:0.75},lbl.substring(0,18));
+  });
+
+  // ── RENDER VALVES (skipping V13 which is on the crossover) ──
+  state.valves.filter(v => v.id !== 'V13' && visible(v)).forEach(v => {
+    s += valveSVG(v);
+  });
+
+  // Selected highlight
+  if (state.selected) {
+    const sv = state.valves.find(v => v.id === state.selected);
+    if (sv) {
+      let sy = sv.system==='alta' && sv.type==='impulsion' ? D.altaDiscY :
+               sv.system==='alta' ? D.altaAspY :
+               sv.system==='baja' && sv.type==='impulsion' ? D.bajaDiscY :
+               sv.system==='baja' ? D.bajaAspY : D.gasY;
+      s += svgEl('rect',{
+        x:sv.x-34,y:sy-55,width:68,height:92,
+        fill:'none',stroke:'rgba(0,212,255,0.5)',
+        'stroke-width':1.5,'stroke-dasharray':'4 3',rx:4
+      });
+    }
+  }
+
+  svg.setAttribute('viewBox', `0 0 ${D.W} ${D.H}`);
+  svg.setAttribute('width', D.W);
+  svg.setAttribute('height', D.H);
+  svg.innerHTML = s;
+
+  renderSidebar();
+}
+
+// ═══════════════════════════════════════════════
+//  SIDEBAR LIST
+// ═══════════════════════════════════════════════
+function renderSidebar() {
+  const list = document.getElementById('valve-list');
+  const filter = state.filter;
+  let html = '';
+
+  const filtered = state.valves.filter(v => {
+    if (filter === 'open' || filter === 'closed') return v.status === filter;
+    if (filter === 'all') return true;
+    return v.system === filter;
+  });
+
+  filtered.forEach(v => {
+    const dotColor = v.isFuture ? '#445577' : v.status==='open' ? '#00ff88' : '#ff3355';
+    const sel = v.id === state.selected ? ' selected' : '';
+    html += `<div class="valve-list-item${sel}" onclick="handleClick('${v.id}')">
+      <span class="vli-name">V${v.number}</span>
+      <div class="vli-dot" style="background:${dotColor}"></div>
+    </div>`;
+  });
+
+  list.innerHTML = html || '<div style="color:var(--text-dim);font-size:11px;padding:4px 10px">Sin resultados</div>';
+}
+
+// ═══════════════════════════════════════════════
+//  INFO PANEL
+// ═══════════════════════════════════════════════
+function showInfo(id) {
+  const v = state.valves.find(v => v.id === id);
+  if (!v) return;
+
+  const panel = document.getElementById('info-panel');
+  document.getElementById('info-title').textContent = v.label;
+
+  // Status badge
+  let badgeClass, badgeText;
+  if (v.isFuture) { badgeClass = 'future'; badgeText = 'FUTURA'; }
+  else if (v.status === 'open') { badgeClass = 'open'; badgeText = 'ABIERTA'; }
+  else { badgeClass = 'closed'; badgeText = 'CERRADA'; }
+  document.getElementById('info-status').innerHTML =
+    `<span class="info-badge ${badgeClass}"><span class="dot"></span>${badgeText}</span>`;
+
+  // System
+  const sys = {alta:'Alta Presión',baja:'Baja Presión',gas_caliente:'Gas Caliente / Deshielo'};
+  document.getElementById('info-system').textContent = sys[v.system] || v.system;
+
+  // Type
+  const tp = {impulsion:'Impulsión / Descarga',aspiracion:'Aspiración / Succión',general:'General / Derivación'};
+  document.getElementById('info-type').textContent = tp[v.type] || v.type;
+
+  // Connections
+  const connEl = document.getElementById('info-connections');
+  connEl.innerHTML = v.connections.map(c => `<li>${c}</li>`).join('');
+
+  // Notes
+  const notesRow = document.getElementById('notes-row');
+  if (v.notes) {
+    document.getElementById('info-notes').textContent = v.notes;
+    notesRow.style.display = '';
+  } else {
+    notesRow.style.display = 'none';
+  }
+
+  // Toggle button
+  const btn = document.getElementById('btn-toggle');
+  if (v.isFuture) {
+    btn.textContent = 'FUTURA';
+    btn.disabled = true;
+    btn.className = 'btn btn-toggle';
+  } else if (v.status === 'open') {
+    btn.textContent = 'CERRAR';
+    btn.disabled = false;
+    btn.className = 'btn btn-toggle closing';
+  } else {
+    btn.textContent = 'ABRIR';
+    btn.disabled = false;
+    btn.className = 'btn btn-toggle';
+  }
+
+  panel.classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('info-panel').classList.remove('open');
+  state.selected = null;
+  render();
+}
+
+// ═══════════════════════════════════════════════
+//  EVENT HANDLERS
+// ═══════════════════════════════════════════════
+function handleClick(id) {
+  state.selected = id;
+  render();
+  showInfo(id);
+}
+
+function handleDblClick(id) {
+  state.selected = id;
+  toggleValve(id);
+}
+
+function toggleSelectedValve() {
+  if (state.selected) toggleValve(state.selected);
+}
+
+function toggleValve(id) {
+  const v = state.valves.find(v => v.id === id);
+  if (!v || v.isFuture || state.animating.has(id)) return;
+
+  const opening = v.status === 'closed';
+  playValveSound(opening);
+
+  // Spin handwheel
+  state.animating.add(id);
+  const wheelEl = document.getElementById(`wheel-${id}`);
+  if (wheelEl) {
+    wheelEl.classList.add('wheel-spin');
+    setTimeout(() => {
+      wheelEl.classList.remove('wheel-spin');
+      state.animating.delete(id);
+    }, 1150);
+  } else {
+    state.animating.delete(id);
+  }
+
+  // Change state after half animation
+  setTimeout(() => {
+    v.status = opening ? 'open' : 'closed';
+    saveData();
+    render();
+    if (state.selected === id) showInfo(id);
+    toast(opening ? `✓ V${v.number} abierta` : `✗ V${v.number} cerrada`);
+  }, 600);
+}
+
+function setFilter(f, btn) {
+  state.filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// ═══════════════════════════════════════════════
+//  SOUND ENGINE (Web Audio API)
+// ═══════════════════════════════════════════════
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playValveSound(opening) {
+  try {
+    const ctx = getAudio();
+    const dur = 1.2;
+
+    // Metallic mechanical sound
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+
+    for (let i = 0; i < bufSize; i++) {
+      const t = i / ctx.sampleRate;
+      const env = Math.exp(-t * (opening ? 6 : 8));
+      // Noise burst
+      data[i] = (Math.random() * 2 - 1) * env * 0.4;
+      // Metallic resonance
+      data[i] += Math.sin(2 * Math.PI * (opening ? 180 : 160) * t) * Math.exp(-t * 12) * 0.25;
+      data[i] += Math.sin(2 * Math.PI * 920 * t) * Math.exp(-t * 30) * 0.15;
+      data[i] += Math.sin(2 * Math.PI * 1400 * t) * Math.exp(-t * 50) * 0.08;
+    }
+
+    // Ratchet clicks (simulating handwheel turns)
+    const clicks = opening ? 6 : 5;
+    for (let c = 0; c < clicks; c++) {
+      const cStart = Math.floor((c / clicks) * bufSize * 0.8);
+      const clickLen = Math.floor(ctx.sampleRate * 0.03);
+      for (let j = 0; j < clickLen && cStart+j < bufSize; j++) {
+        const t2 = j / ctx.sampleRate;
+        data[cStart + j] += (Math.random() * 2 - 1) * Math.exp(-t2 * 80) * 0.6;
+        data[cStart + j] += Math.sin(2 * Math.PI * 600 * t2) * Math.exp(-t2 * 100) * 0.3;
+      }
+    }
+
+    // Flow whoosh at end (opening only)
+    if (opening) {
+      const whooshStart = Math.floor(bufSize * 0.65);
+      for (let i = whooshStart; i < bufSize; i++) {
+        const t = (i - whooshStart) / ctx.sampleRate;
+        const env2 = t < 0.1 ? t / 0.1 : Math.exp(-(t - 0.1) * 5);
+        data[i] += (Math.random() * 2 - 1) * env2 * 0.25;
+      }
+    }
+
+    // Final thud (closing)
+    if (!opening) {
+      const thudStart = Math.floor(bufSize * 0.85);
+      for (let i = thudStart; i < bufSize; i++) {
+        const t = (i - thudStart) / ctx.sampleRate;
+        data[i] += Math.sin(2 * Math.PI * 80 * t) * Math.exp(-t * 40) * 0.8;
+        data[i] += (Math.random() * 2 - 1) * Math.exp(-t * 60) * 0.4;
+      }
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.6, ctx.currentTime);
+
+    // Low-pass filter for realism
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 3500;
+
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    src.start();
+  } catch(e) {
+    // Audio not available, silent operation
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  CRUD — MODAL
+// ═══════════════════════════════════════════════
+function openModal(id) {
+  const modal = document.getElementById('modal-bg');
+  const v = id ? state.valves.find(v => v.id === id) : null;
+
+  document.getElementById('modal-title').textContent = v ? 'EDITAR VÁLVULA' : 'NUEVA VÁLVULA';
+  document.getElementById('f-id').value = v ? v.id : '';
+  document.getElementById('f-number').value = v ? v.number : '';
+  document.getElementById('f-label').value = v ? v.label : '';
+  document.getElementById('f-system').value = v ? v.system : 'alta';
+  document.getElementById('f-type').value = v ? v.type : 'impulsion';
+  document.getElementById('f-status').value = v ? v.status : 'open';
+  document.getElementById('f-connections').value = v ? v.connections.join('\n') : '';
+  document.getElementById('f-notes').value = v ? (v.notes||'') : '';
+  document.getElementById('f-x').value = v ? v.x : 400;
+
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+
+function saveValve() {
+  const id = document.getElementById('f-id').value;
+  const number = document.getElementById('f-number').value;
+  const label  = document.getElementById('f-label').value.trim();
+  const system = document.getElementById('f-system').value;
+  const type   = document.getElementById('f-type').value;
+  const status = document.getElementById('f-status').value;
+  const conns  = document.getElementById('f-connections').value.trim().split('\n').filter(l=>l.trim());
+  const notes  = document.getElementById('f-notes').value.trim();
+  const x      = parseInt(document.getElementById('f-x').value) || 400;
+
+  if (!number || !label) { alert('Número y nombre son requeridos'); return; }
+
+  if (id) {
+    // Update
+    const v = state.valves.find(v => v.id === id);
+    if (v) {
+      Object.assign(v, { number, label, system, type, status, connections:conns, notes, x });
+    }
+    toast('Válvula actualizada');
+  } else {
+    // Create
+    const newId = 'V' + Date.now();
+    state.valves.push({ id:newId, number, label, system, type, status, isFuture:false, connections:conns, notes, x });
+    toast('Válvula creada');
+  }
+
+  saveData();
+  closeModal();
+  render();
+  if (id && state.selected === id) showInfo(id);
+}
+
+function deleteSelected() {
+  if (!state.selected) return;
+  const v = state.valves.find(v => v.id === state.selected);
+  if (!v) return;
+  if (!confirm(`¿Eliminar válvula V${v.number} — ${v.label}?`)) return;
+
+  state.valves = state.valves.filter(v => v.id !== state.selected);
+  state.selected = null;
+  saveData();
+  closePanel();
+  render();
+  toast('Válvula eliminada');
+}
+
+// ═══════════════════════════════════════════════
+//  TOAST
+// ═══════════════════════════════════════════════
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+
+// Close modal on bg click
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+loadData();
+render();
+updateClock();
+setInterval(updateClock, 1000);
+</script>
+</body>
+</html>
