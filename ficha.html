@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Relevamiento de Válvulas · NH₃</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:     #06090f;
+  --bg2:    #0b1120;
+  --bg3:    #0f1a30;
+  --border: #1a3358;
+  --text:   #c0d4f0;
+  --dim:    #5577aa;
+  --accent: #00d4ff;
+  --green:  #00ff88;
+  --red:    #ff3355;
+  --orange: #ff7700;
+  --amber:  #ffaa00;
+  --font:   'Rajdhani', sans-serif;
+  --mono:   'Share Tech Mono', monospace;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+html,body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font); }
+body { display:flex; flex-direction:column; }
+
+/* ── HEADER ── */
+#hdr {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:10px 16px; display:flex; align-items:center; justify-content:space-between;
+  flex-shrink:0; position:sticky; top:0; z-index:20;
+}
+#hdr h1 { font-size:15px; font-weight:700; letter-spacing:1.5px; color:var(--accent); }
+#hdr h1 span { color:var(--dim); font-weight:400; font-size:12px; }
+#counter {
+  font-family:var(--mono); font-size:13px; color:var(--green);
+  background:rgba(0,255,136,0.08); border:1px solid rgba(0,255,136,0.25);
+  padding:3px 10px; border-radius:20px;
+}
+
+/* ── TABS ── */
+#tabs {
+  display:flex; background:var(--bg2); border-bottom:1px solid var(--border);
+  overflow-x:auto; flex-shrink:0;
+  scrollbar-width:none;
+}
+#tabs::-webkit-scrollbar { display:none; }
+.tab {
+  padding:10px 14px; font-size:12px; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; color:var(--dim); border-bottom:2px solid transparent;
+  cursor:pointer; white-space:nowrap; flex-shrink:0; transition:all .15s;
+}
+.tab.active { color:var(--accent); border-color:var(--accent); }
+
+/* ── SECTIONS ── */
+#sections { flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.section { display:none; padding:16px; }
+.section.active { display:block; }
+
+.sec-title {
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--dim); margin-bottom:14px; padding-bottom:6px;
+  border-bottom:1px solid var(--border);
+}
+
+/* ── FORM FIELDS ── */
+.field { margin-bottom:16px; }
+.field label {
+  display:block; font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--dim); margin-bottom:6px;
+}
+.field label .req { color:var(--orange); }
+.field input,
+.field select,
+.field textarea {
+  width:100%; background:var(--bg3); border:1px solid var(--border);
+  color:var(--text); padding:12px 14px; border-radius:6px;
+  font-family:var(--font); font-size:16px; /* 16px prevents iOS zoom */
+  transition:border-color .15s; -webkit-appearance:none; appearance:none;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline:none; border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(0,212,255,0.12);
+}
+.field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%235577aa' d='M6 8L0 0h12z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+.field textarea { resize:vertical; min-height:80px; }
+.field select option { background:#0f1a30; }
+
+/* Radio / Check groups */
+.radio-group,.check-group { display:flex; flex-wrap:wrap; gap:8px; }
+.radio-opt,.check-opt {
+  flex:1; min-width:120px; padding:10px 12px;
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:6px; cursor:pointer; display:flex; align-items:center; gap:8px;
+  font-size:14px; font-weight:500; transition:all .15s; user-select:none;
+}
+.radio-opt input,.check-opt input { display:none; }
+.radio-opt.selected,.check-opt.selected {
+  border-color:var(--accent); background:rgba(0,212,255,0.1); color:var(--accent);
+}
+.radio-opt.selected.green,.check-opt.selected.green {
+  border-color:var(--green); background:rgba(0,255,136,0.1); color:var(--green);
+}
+.radio-opt.selected.red,.check-opt.selected.red {
+  border-color:var(--red); background:rgba(255,51,85,0.1); color:var(--red);
+}
+.radio-dot {
+  width:14px; height:14px; border-radius:50%;
+  border:2px solid currentColor; flex-shrink:0; display:flex;
+  align-items:center; justify-content:center;
+}
+.radio-dot::after {
+  content:''; width:6px; height:6px; border-radius:50%;
+  background:currentColor; display:none;
+}
+.radio-opt.selected .radio-dot::after { display:block; }
+
+/* ── PHOTO SECTION ── */
+.photo-item {
+  background:var(--bg3); border:1px dashed var(--border);
+  border-radius:8px; padding:12px; margin-bottom:12px;
+  display:flex; align-items:center; gap:12px;
+}
+.photo-preview {
+  width:70px; height:70px; border-radius:6px; object-fit:cover;
+  background:var(--bg2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--dim); font-size:24px; flex-shrink:0; overflow:hidden;
+}
+.photo-preview img { width:100%; height:100%; object-fit:cover; }
+.photo-info { flex:1; min-width:0; }
+.photo-label { font-size:13px; font-weight:600; margin-bottom:2px; }
+.photo-sub { font-size:11px; color:var(--dim); }
+.btn-photo {
+  background:rgba(0,212,255,0.1); border:1px solid rgba(0,212,255,0.3);
+  color:var(--accent); padding:8px 14px; border-radius:6px;
+  cursor:pointer; font-family:var(--font); font-size:13px; font-weight:600;
+  white-space:nowrap; flex-shrink:0; transition:all .15s;
+}
+.btn-photo:active { background:rgba(0,212,255,0.25); }
+
+/* ── BOTTOM BAR ── */
+#bottom {
+  background:var(--bg2); border-top:1px solid var(--border);
+  padding:12px 16px; display:flex; gap:10px; flex-shrink:0;
+}
+.btn-main {
+  flex:1; padding:14px; border-radius:8px; border:1px solid transparent;
+  cursor:pointer; font-family:var(--font); font-size:15px; font-weight:700;
+  letter-spacing:1px; text-transform:uppercase; transition:all .15s;
+}
+.btn-save {
+  background:rgba(0,255,136,0.12); border-color:rgba(0,255,136,0.4); color:var(--green);
+}
+.btn-save:active { background:rgba(0,255,136,0.25); }
+.btn-list {
+  background:rgba(0,212,255,0.08); border-color:rgba(0,212,255,0.25); color:var(--accent);
+  flex:0 0 auto; padding:14px 20px;
+}
+.btn-list:active { background:rgba(0,212,255,0.2); }
+.btn-new {
+  background:rgba(255,119,0,0.1); border-color:rgba(255,119,0,0.3); color:var(--orange);
+  flex:0 0 auto; padding:14px 20px;
+}
+
+/* ── MODAL LISTA ── */
+#modal-bg {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(4px);
+  z-index:100; align-items:flex-end;
+}
+#modal-bg.show { display:flex; }
+#modal {
+  background:var(--bg2); border-top:1px solid var(--border);
+  border-radius:16px 16px 0 0; width:100%; max-height:85vh;
+  display:flex; flex-direction:column;
+}
+#modal-header {
+  padding:16px 20px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+#modal-header h2 { font-size:16px; font-weight:700; }
+.btn-close {
+  background:none; border:none; color:var(--dim); font-size:22px;
+  cursor:pointer; padding:2px 8px; line-height:1;
+}
+#modal-body { overflow-y:auto; flex:1; padding:8px 0; }
+#export-bar {
+  padding:12px 16px; border-top:1px solid var(--border);
+  display:flex; gap:8px; flex-shrink:0;
+}
+.btn-exp {
+  flex:1; padding:10px; border-radius:6px; border:1px solid var(--border);
+  color:var(--text); background:var(--bg3); cursor:pointer;
+  font-family:var(--font); font-size:13px; font-weight:600;
+}
+
+/* Valve card in list */
+.v-card {
+  padding:14px 20px; border-bottom:1px solid rgba(26,51,88,0.5);
+  display:flex; align-items:center; gap:12px; cursor:pointer;
+  transition:background .1s;
+}
+.v-card:active { background:rgba(255,255,255,0.04); }
+.v-thumb {
+  width:48px; height:48px; border-radius:6px; flex-shrink:0;
+  background:var(--bg3); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; overflow:hidden;
+}
+.v-thumb img { width:100%; height:100%; object-fit:cover; }
+.v-info { flex:1; min-width:0; }
+.v-tag { font-family:var(--mono); font-size:13px; color:var(--accent); }
+.v-desc { font-size:13px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.v-sector { font-size:11px; color:var(--dim); margin-top:1px; }
+.v-badge {
+  font-size:10px; padding:3px 8px; border-radius:20px; flex-shrink:0;
+  font-weight:700; letter-spacing:1px;
+}
+.v-badge.alta { background:rgba(255,119,0,0.15); color:var(--orange); border:1px solid rgba(255,119,0,0.3); }
+.v-badge.baja { background:rgba(51,170,255,0.15); color:#33aaff; border:1px solid rgba(51,170,255,0.3); }
+.v-badge.gas  { background:rgba(255,17,68,0.15);  color:#ff4466; border:1px solid rgba(255,17,68,0.3); }
+.v-badge.otro { background:rgba(85,119,170,0.15); color:var(--dim); border:1px solid var(--border); }
+
+/* ── TOAST ── */
+#toast {
+  position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(10px);
+  background:var(--bg3); border:1px solid var(--border); border-radius:8px;
+  padding:10px 20px; font-size:14px; opacity:0; transition:all .25s;
+  pointer-events:none; z-index:200; white-space:nowrap;
+}
+#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align:center; padding:40px 20px; color:var(--dim);
+  font-size:14px; line-height:1.8;
+}
+.empty .icon { font-size:40px; margin-bottom:10px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <h1>⬡ FICHA DE VÁLVULA <span>· NH₃</span></h1>
+  <div id="counter">0 válvulas</div>
+</div>
+
+<!-- TABS -->
+<div id="tabs">
+  <div class="tab active" onclick="goTab(0)">🔖 Identif.</div>
+  <div class="tab" onclick="goTab(1)">📍 Ubicación</div>
+  <div class="tab" onclick="goTab(2)">⚙️ Sistema</div>
+  <div class="tab" onclick="goTab(3)">🔧 Técnico</div>
+  <div class="tab" onclick="goTab(4)">⚠️ Seguridad</div>
+  <div class="tab" onclick="goTab(5)">📋 Estado</div>
+  <div class="tab" onclick="goTab(6)">📷 Fotos</div>
+</div>
+
+<!-- SECTIONS -->
+<div id="sections">
+
+  <!-- 0: IDENTIFICACIÓN -->
+  <div class="section active" id="sec-0">
+    <div class="sec-title">Identificación de la válvula</div>
+
+    <div class="field">
+      <label>Número / Tag <span class="req">*</span></label>
+      <input type="text" id="f-tag" placeholder="Ej: V-02, XV-101, GV-015" autocomplete="off">
+    </div>
+
+    <div class="field">
+      <label>Tipo de válvula <span class="req">*</span></label>
+      <select id="f-tipo">
+        <option value="">— Seleccioná —</option>
+        <option>Compuerta (Gate)</option>
+        <option>Globo (Globe)</option>
+        <option>Mariposa (Butterfly)</option>
+        <option>Bola (Ball)</option>
+        <option>Retención / Check</option>
+        <option>Aguja (Needle)</option>
+        <option>Alivio / Seguridad</option>
+        <option>Solenoide</option>
+        <option>Reguladora de presión</option>
+        <option>Expansión termostática</option>
+        <option>Otra</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Diámetro nominal</label>
+      <select id="f-diam">
+        <option value="">— Seleccioná —</option>
+        <option>1/4"</option><option>3/8"</option><option>1/2"</option>
+        <option>3/4"</option><option>1"</option><option>1 1/4"</option>
+        <option>1 1/2"</option><option>2"</option><option>2 1/2"</option>
+        <option>3"</option><option>4"</option><option>6"</option>
+        <option>8"</option><option>10"</option><option>12"</option>
+        <option>Otro / No visible</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Material del cuerpo</label>
+      <select id="f-mat">
+        <option value="">— Seleccioná —</option>
+        <option>Acero al carbono</option>
+        <option>Acero inoxidable</option>
+        <option>Hierro fundido</option>
+        <option>Hierro dúctil</option>
+        <option>Bronce / Latón</option>
+        <option>No visible / Desconocido</option>
+        <option>Otro</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Marca / Fabricante</label>
+      <input type="text" id="f-marca" placeholder="Ej: Danfoss, Hansen, Parker">
+    </div>
+
+    <div class="field">
+      <label>Modelo / Referencia</label>
+      <input type="text" id="f-modelo" placeholder="Ej: SVA-S 25, ICS 25">
+    </div>
+
+    <div class="field">
+      <label>Número de serie (si es visible)</label>
+      <input type="text" id="f-serie" placeholder="Número de placa de la válvula">
+    </div>
+  </div>
+
+  <!-- 1: UBICACIÓN -->
+  <div class="section" id="sec-1">
+    <div class="sec-title">Ubicación en planta</div>
+
+    <div class="field">
+      <label>Sector / Área principal <span class="req">*</span></label>
+      <select id="f-sector">
+        <option value="">— Seleccioná —</option>
+        <option>Sala de máquinas</option>
+        <option>Techo / Azotea</option>
+        <option>Pasillo de túneles</option>
+        <option>Salón de desposte</option>
+        <option>Salón de cuarteo</option>
+        <option>Sala de faena / Matadero</option>
+        <option>Sala de empaque / Porciones</option>
+        <option>Área de cámaras frigoríficas</option>
+        <option>Saladero</option>
+        <option>Área de congeladores / Túneles</option>
+        <option>Exterior / Patio</option>
+        <option>Subestación / Tableros</option>
+        <option>Otro</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Subsector / Descripción específica</label>
+      <input type="text" id="f-subsector" placeholder="Ej: Sala de máquinas — lado norte">
+    </div>
+
+    <div class="field">
+      <label>Nivel / Piso</label>
+      <select id="f-nivel">
+        <option value="">— Seleccioná —</option>
+        <option>Subsuelo / Foso</option>
+        <option>Planta baja</option>
+        <option>Entrepiso</option>
+        <option>Primer piso</option>
+        <option>Segundo piso</option>
+        <option>Techo</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Altura aproximada de la válvula</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-altura')">
+          <input type="radio" name="f-altura" value="Piso (0-1m)">
+          <div class="radio-dot"></div> Piso (0–1m)
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-altura')">
+          <input type="radio" name="f-altura" value="Media (1-2m)">
+          <div class="radio-dot"></div> Media (1–2m)
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-altura')">
+          <input type="radio" name="f-altura" value="Alta (2-3m)">
+          <div class="radio-dot"></div> Alta (2–3m)
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-altura')">
+          <input type="radio" name="f-altura" value="Techo (+3m)">
+          <div class="radio-dot"></div> Techo (+3m)
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Referencia de ubicación <span class="req">*</span></label>
+      <textarea id="f-ubicref" placeholder="Describí cómo llegar a la válvula. Ej: 'Al lado del compresor N°2, sobre la línea naranja, a media altura'"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Accesibilidad</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-acces')">
+          <input type="radio" name="f-acces" value="Fácil acceso">
+          <div class="radio-dot"></div> Fácil acceso
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-acces')">
+          <input type="radio" name="f-acces" value="Requiere escalera">
+          <div class="radio-dot"></div> Requiere escalera
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-acces')">
+          <input type="radio" name="f-acces" value="Difícil acceso">
+          <div class="radio-dot"></div> Difícil acceso
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2: SISTEMA Y FUNCIÓN -->
+  <div class="section" id="sec-2">
+    <div class="sec-title">Sistema y función operativa</div>
+
+    <div class="field">
+      <label>Sistema <span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-sistema')">
+          <input type="radio" name="f-sistema" value="Alta presión NH3">
+          <div class="radio-dot"></div> Alta presión NH₃
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-sistema')">
+          <input type="radio" name="f-sistema" value="Baja presión NH3">
+          <div class="radio-dot"></div> Baja presión NH₃
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-sistema')">
+          <input type="radio" name="f-sistema" value="Gas caliente / Deshielo">
+          <div class="radio-dot"></div> Gas caliente
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-sistema')">
+          <input type="radio" name="f-sistema" value="Agua / Salmuera">
+          <div class="radio-dot"></div> Agua / Salmuera
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-sistema')">
+          <input type="radio" name="f-sistema" value="Otro">
+          <div class="radio-dot"></div> Otro
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Tipo en el sistema <span class="req">*</span></label>
+      <select id="f-tipo-sist">
+        <option value="">— Seleccioná —</option>
+        <option>Impulsión / Descarga</option>
+        <option>Aspiración / Succión</option>
+        <option>By-pass</option>
+        <option>Purga / Drenaje</option>
+        <option>Derivación / Ramal</option>
+        <option>General / Principal</option>
+        <option>Unión entre sistemas</option>
+        <option>Otro</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Posición normal (en operación) <span class="req">*</span></label>
+      <div class="radio-group">
+        <label class="radio-opt green" onclick="radioSelect(this,'f-pos')">
+          <input type="radio" name="f-pos" value="Normalmente abierta (NA)">
+          <div class="radio-dot"></div> Normalmente ABIERTA
+        </label>
+        <label class="radio-opt red" onclick="radioSelect(this,'f-pos')">
+          <input type="radio" name="f-pos" value="Normalmente cerrada (NC)">
+          <div class="radio-dot"></div> Normalmente CERRADA
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-pos')">
+          <input type="radio" name="f-pos" value="Variable / Regulación">
+          <div class="radio-dot"></div> Variable / Regulación
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>¿Qué conecta / controla? <span class="req">*</span></label>
+      <textarea id="f-conecta" placeholder="Describí el destino del flujo. Ej: 'Cámara 15, Cámara 18, Camarita de faena'&#10;&#10;Si es un by-pass, indicá entre qué elementos."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Válvulas relacionadas en una maniobra</label>
+      <textarea id="f-relacionadas" placeholder="Ej: 'Para cerrar esta válvula se debe abrir primero la V-13 y cerrar la V-05'"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Descripción de la maniobra típica</label>
+      <textarea id="f-maniobra" placeholder="Describí paso a paso la maniobra más común en la que participa esta válvula..."></textarea>
+    </div>
+  </div>
+
+  <!-- 3: TÉCNICO -->
+  <div class="section" id="sec-3">
+    <div class="sec-title">Datos técnicos</div>
+
+    <div class="field">
+      <label>Fluido que maneja</label>
+      <select id="f-fluido">
+        <option value="">— Seleccioná —</option>
+        <option>NH₃ Gas (vapor)</option>
+        <option>NH₃ Líquido</option>
+        <option>NH₃ Gas caliente (descarga)</option>
+        <option>NH₃ Mezcla líquido-vapor</option>
+        <option>Agua</option>
+        <option>Salmuera / Glicol</option>
+        <option>Aceite de compresor</option>
+        <option>Otro</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Presión de trabajo (bar o kg/cm²)</label>
+      <input type="text" id="f-presion" placeholder="Ej: 18 bar, 14 kg/cm²">
+    </div>
+
+    <div class="field">
+      <label>Temperatura de trabajo</label>
+      <input type="text" id="f-temp" placeholder="Ej: -30°C a -35°C">
+    </div>
+
+    <div class="field">
+      <label>Presión máxima admisible (PS / MWP)</label>
+      <input type="text" id="f-ps" placeholder="Dato de placa si es visible">
+    </div>
+
+    <div class="field">
+      <label>Accionamiento</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-accion')">
+          <input type="radio" name="f-accion" value="Manual (volante)">
+          <div class="radio-dot"></div> Manual (volante)
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-accion')">
+          <input type="radio" name="f-accion" value="Manual (llave)">
+          <div class="radio-dot"></div> Manual (llave)
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-accion')">
+          <input type="radio" name="f-accion" value="Neumático">
+          <div class="radio-dot"></div> Neumático
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-accion')">
+          <input type="radio" name="f-accion" value="Eléctrico (motor)">
+          <div class="radio-dot"></div> Eléctrico
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-accion')">
+          <input type="radio" name="f-accion" value="Automático / Piloto">
+          <div class="radio-dot"></div> Automático
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Sentido de apertura del volante</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-giro')">
+          <input type="radio" name="f-giro" value="Horario para abrir (convencional)">
+          <div class="radio-dot"></div> Horario = cierra
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-giro')">
+          <input type="radio" name="f-giro" value="Antihorario para abrir (inversa)">
+          <div class="radio-dot"></div> Antihorario = cierra
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-giro')">
+          <input type="radio" name="f-giro" value="No aplica / Automática">
+          <div class="radio-dot"></div> No aplica
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Número de vueltas aproximado (apertura total)</label>
+      <input type="text" id="f-vueltas" placeholder="Ej: 6 vueltas completas">
+    </div>
+
+    <div class="field">
+      <label>Observaciones técnicas</label>
+      <textarea id="f-obs-tec" placeholder="Datos de placa, particularidades técnicas, accesorios asociados..."></textarea>
+    </div>
+  </div>
+
+  <!-- 4: SEGURIDAD -->
+  <div class="section" id="sec-4">
+    <div class="sec-title">Seguridad y precauciones</div>
+
+    <div class="field">
+      <label>¿Requiere bloqueo / LOTO para mantenimiento?</label>
+      <div class="radio-group">
+        <label class="radio-opt red" onclick="radioSelect(this,'f-loto')">
+          <input type="radio" name="f-loto" value="Sí — requiere LOTO">
+          <div class="radio-dot"></div> SÍ — requiere LOTO
+        </label>
+        <label class="radio-opt green" onclick="radioSelect(this,'f-loto')">
+          <input type="radio" name="f-loto" value="No requiere LOTO">
+          <div class="radio-dot"></div> NO requiere
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-loto')">
+          <input type="radio" name="f-loto" value="No determinado">
+          <div class="radio-dot"></div> No determinado
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>¿Es crítica para parada de emergencia?</label>
+      <div class="radio-group">
+        <label class="radio-opt red" onclick="radioSelect(this,'f-emerg')">
+          <input type="radio" name="f-emerg" value="Sí — crítica para emergencia">
+          <div class="radio-dot"></div> SÍ — crítica
+        </label>
+        <label class="radio-opt green" onclick="radioSelect(this,'f-emerg')">
+          <input type="radio" name="f-emerg" value="No es crítica para emergencia">
+          <div class="radio-dot"></div> NO es crítica
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-emerg')">
+          <input type="radio" name="f-emerg" value="No determinado">
+          <div class="radio-dot"></div> No determinado
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>¿Tiene by-pass o válvula de alivio asociada?</label>
+      <div class="radio-group">
+        <label class="radio-opt" onclick="radioSelect(this,'f-bypass')">
+          <input type="radio" name="f-bypass" value="Sí tiene by-pass">
+          <div class="radio-dot"></div> Sí tiene by-pass
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-bypass')">
+          <input type="radio" name="f-bypass" value="No tiene">
+          <div class="radio-dot"></div> No tiene
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-bypass')">
+          <input type="radio" name="f-bypass" value="No sé">
+          <div class="radio-dot"></div> No sé
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>EPP requerido para operar</label>
+      <textarea id="f-epp" placeholder="Ej: 'Máscara completa con cartucho NH3, guantes criogénicos, traje de protección'"></textarea>
+    </div>
+
+    <div class="field">
+      <label>⚠️ Notas de seguridad importantes</label>
+      <textarea id="f-seg" placeholder="Precauciones específicas, riesgos conocidos, procedimientos especiales..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Procedimiento para operar con seguridad</label>
+      <textarea id="f-proc" placeholder="Paso a paso para operar esta válvula de forma segura..."></textarea>
+    </div>
+  </div>
+
+  <!-- 5: ESTADO ACTUAL -->
+  <div class="section" id="sec-5">
+    <div class="sec-title">Estado actual</div>
+
+    <div class="field">
+      <label>Estado al momento del relevamiento</label>
+      <div class="radio-group">
+        <label class="radio-opt green" onclick="radioSelect(this,'f-estado')">
+          <input type="radio" name="f-estado" value="Abierta">
+          <div class="radio-dot"></div> Abierta
+        </label>
+        <label class="radio-opt red" onclick="radioSelect(this,'f-estado')">
+          <input type="radio" name="f-estado" value="Cerrada">
+          <div class="radio-dot"></div> Cerrada
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-estado')">
+          <input type="radio" name="f-estado" value="Parcialmente abierta">
+          <div class="radio-dot"></div> Parcial
+        </label>
+        <label class="radio-opt red" onclick="radioSelect(this,'f-estado')">
+          <input type="radio" name="f-estado" value="Bloqueada / Candado">
+          <div class="radio-dot"></div> Bloqueada
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-estado')">
+          <input type="radio" name="f-estado" value="Desconocido">
+          <div class="radio-dot"></div> Desconocido
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Condición general de la válvula</label>
+      <select id="f-condicion">
+        <option value="">— Seleccioná —</option>
+        <option>✅ Buena — opera correctamente</option>
+        <option>⚠️ Regular — funciona con observaciones</option>
+        <option>🔧 Regular — necesita reparación</option>
+        <option>❌ Mala — no funciona</option>
+        <option>🚫 Fuera de servicio</option>
+        <option>❓ No determinado</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>¿Tiene pérdidas / fugas visibles?</label>
+      <div class="radio-group">
+        <label class="radio-opt red" onclick="radioSelect(this,'f-fuga')">
+          <input type="radio" name="f-fuga" value="Sí tiene fugas">
+          <div class="radio-dot"></div> SÍ tiene fugas
+        </label>
+        <label class="radio-opt green" onclick="radioSelect(this,'f-fuga')">
+          <input type="radio" name="f-fuga" value="Sin fugas visibles">
+          <div class="radio-dot"></div> Sin fugas
+        </label>
+        <label class="radio-opt" onclick="radioSelect(this,'f-fuga')">
+          <input type="radio" name="f-fuga" value="No verificado">
+          <div class="radio-dot"></div> No verificado
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>¿Tiene identificación física (cartel, tag)?</label>
+      <div class="radio-group">
+        <label class="radio-opt green" onclick="radioSelect(this,'f-cartel')">
+          <input type="radio" name="f-cartel" value="Sí tiene identificación">
+          <div class="radio-dot"></div> Sí tiene
+        </label>
+        <label class="radio-opt red" onclick="radioSelect(this,'f-cartel')">
+          <input type="radio" name="f-cartel" value="No tiene identificación">
+          <div class="radio-dot"></div> No tiene
+        </label>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Observaciones del estado</label>
+      <textarea id="f-obs-estado" placeholder="Golpes, corrosión, pintura, vibración, ruido, etc..."></textarea>
+    </div>
+
+    <div class="field">
+      <label>Fecha del relevamiento <span class="req">*</span></label>
+      <input type="date" id="f-fecha">
+    </div>
+
+    <div class="field">
+      <label>Relevado por <span class="req">*</span></label>
+      <input type="text" id="f-operario" placeholder="Tu nombre">
+    </div>
+  </div>
+
+  <!-- 6: FOTOS -->
+  <div class="section" id="sec-6">
+    <div class="sec-title">Fotografías</div>
+
+    <div class="photo-item">
+      <div class="photo-preview" id="prev-0">📷</div>
+      <div class="photo-info">
+        <div class="photo-label">Foto principal</div>
+        <div class="photo-sub">Vista general de la válvula con su entorno</div>
+      </div>
+      <button class="btn-photo" onclick="tomarFoto(0)">📷 Foto</button>
+      <input type="file" accept="image/*" capture="environment" id="photo-0" style="display:none" onchange="procesarFoto(this,0)">
+    </div>
+
+    <div class="photo-item">
+      <div class="photo-preview" id="prev-1">🏷️</div>
+      <div class="photo-info">
+        <div class="photo-label">Placa / Identificación</div>
+        <div class="photo-sub">Foto de la placa técnica o tag si existe</div>
+      </div>
+      <button class="btn-photo" onclick="tomarFoto(1)">📷 Foto</button>
+      <input type="file" accept="image/*" capture="environment" id="photo-1" style="display:none" onchange="procesarFoto(this,1)">
+    </div>
+
+    <div class="photo-item">
+      <div class="photo-preview" id="prev-2">🗺️</div>
+      <div class="photo-info">
+        <div class="photo-label">Entorno / Contexto</div>
+        <div class="photo-sub">Foto del sector para ubicar la válvula</div>
+      </div>
+      <button class="btn-photo" onclick="tomarFoto(2)">📷 Foto</button>
+      <input type="file" accept="image/*" capture="environment" id="photo-2" style="display:none" onchange="procesarFoto(this,2)">
+    </div>
+
+    <div class="photo-item">
+      <div class="photo-preview" id="prev-3">🔍</div>
+      <div class="photo-info">
+        <div class="photo-label">Detalle / Extra</div>
+        <div class="photo-sub">Foto adicional de detalle</div>
+      </div>
+      <button class="btn-photo" onclick="tomarFoto(3)">📷 Foto</button>
+      <input type="file" accept="image/*" capture="environment" id="photo-3" style="display:none" onchange="procesarFoto(this,3)">
+    </div>
+
+    <div style="margin-top:16px;padding:12px;background:rgba(255,119,0,0.08);border:1px solid rgba(255,119,0,0.2);border-radius:8px;font-size:12px;color:var(--dim);line-height:1.6;">
+      💡 <strong style="color:var(--amber)">Tip:</strong> Las fotos se comprimen automáticamente y se guardan en el dispositivo. Intentá tomar la foto con buena luz y que se vea el número de válvula.
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div id="bottom">
+  <button class="btn-main btn-list" onclick="showList()">📋 Lista</button>
+  <button class="btn-main btn-save" onclick="guardar()">💾 GUARDAR VÁLVULA</button>
+  <button class="btn-main btn-new" onclick="nueva()">＋</button>
+</div>
+
+<!-- MODAL LISTA -->
+<div id="modal-bg">
+  <div id="modal">
+    <div id="modal-header">
+      <h2>Válvulas relevadas</h2>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="export-bar">
+      <button class="btn-exp" onclick="exportJSON()">⬇ JSON</button>
+      <button class="btn-exp" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn-exp" onclick="borrarTodo()" style="color:var(--red);border-color:rgba(255,51,85,0.3)">🗑 Borrar todo</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── STATE ──
+let currentTab = 0;
+let photos = [null, null, null, null];
+let editingId = null;
+const STORE = 'nh3_relevamiento_v1';
+
+function loadAll() {
+  try { return JSON.parse(localStorage.getItem(STORE)) || []; }
+  catch { return []; }
+}
+function saveAll(data) {
+  localStorage.setItem(STORE, JSON.stringify(data));
+}
+
+// ── TABS ──
+function goTab(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===n));
+  document.querySelectorAll('.section').forEach((s,i) => s.classList.toggle('active', i===n));
+  currentTab = n;
+  document.getElementById('sections').scrollTo(0,0);
+}
+
+// ── RADIO BUTTONS ──
+function radioSelect(el, name) {
+  document.querySelectorAll(`[name="${name}"]`).forEach(r => {
+    const parent = r.closest('.radio-opt');
+    if (parent) parent.classList.remove('selected');
+  });
+  el.classList.add('selected');
+  el.querySelector('input').checked = true;
+}
+
+function getRadio(name) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  return el ? el.value : '';
+}
+function setRadio(name, value) {
+  document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+    const parent = r.closest('.radio-opt');
+    if (r.value === value) {
+      r.checked = true;
+      if (parent) parent.classList.add('selected');
+    } else {
+      if (parent) parent.classList.remove('selected');
+    }
+  });
+}
+
+// ── PHOTOS ──
+function tomarFoto(idx) {
+  document.getElementById(`photo-${idx}`).click();
+}
+
+function procesarFoto(input, idx) {
+  const file = input.files[0];
+  if (!file) return;
+  const canvas = document.createElement('canvas');
+  const img = new Image();
+  img.onload = () => {
+    const MAX = 900;
+    const ratio = Math.min(MAX / img.width, MAX / img.height, 1);
+    canvas.width  = img.width  * ratio;
+    canvas.height = img.height * ratio;
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    const data = canvas.toDataURL('image/jpeg', 0.72);
+    photos[idx] = data;
+    const prev = document.getElementById(`prev-${idx}`);
+    prev.innerHTML = `<img src="${data}" alt="foto">`;
+    toast('Foto guardada ✓');
+    URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(file);
+}
+
+// ── READ / WRITE FORM ──
+function readForm() {
+  return {
+    id:           editingId || ('V_' + Date.now()),
+    fechaSave:    new Date().toISOString(),
+    tag:          v('f-tag'),
+    tipo:         v('f-tipo'),
+    diametro:     v('f-diam'),
+    material:     v('f-mat'),
+    marca:        v('f-marca'),
+    modelo:       v('f-modelo'),
+    serie:        v('f-serie'),
+    sector:       v('f-sector'),
+    subsector:    v('f-subsector'),
+    nivel:        v('f-nivel'),
+    altura:       getRadio('f-altura'),
+    ubicRef:      v('f-ubicref'),
+    accesibilidad:getRadio('f-acces'),
+    sistema:      getRadio('f-sistema'),
+    tipoSistema:  v('f-tipo-sist'),
+    posNormal:    getRadio('f-pos'),
+    conecta:      v('f-conecta'),
+    relacionadas: v('f-relacionadas'),
+    maniobra:     v('f-maniobra'),
+    fluido:       v('f-fluido'),
+    presion:      v('f-presion'),
+    temperatura:  v('f-temp'),
+    ps:           v('f-ps'),
+    accionamiento:getRadio('f-accion'),
+    giro:         getRadio('f-giro'),
+    vueltas:      v('f-vueltas'),
+    obsTecnicas:  v('f-obs-tec'),
+    loto:         getRadio('f-loto'),
+    emergencia:   getRadio('f-emerg'),
+    bypass:       getRadio('f-bypass'),
+    epp:          v('f-epp'),
+    seguridad:    v('f-seg'),
+    procedimiento:v('f-proc'),
+    estado:       getRadio('f-estado'),
+    condicion:    v('f-condicion'),
+    fugas:        getRadio('f-fuga'),
+    cartel:       getRadio('f-cartel'),
+    obsEstado:    v('f-obs-estado'),
+    fecha:        v('f-fecha'),
+    operario:     v('f-operario'),
+    fotos:        [...photos],
+  };
+}
+
+function fillForm(d) {
+  sv('f-tag',    d.tag);
+  sv('f-tipo',   d.tipo);
+  sv('f-diam',   d.diametro);
+  sv('f-mat',    d.material);
+  sv('f-marca',  d.marca);
+  sv('f-modelo', d.modelo);
+  sv('f-serie',  d.serie);
+  sv('f-sector', d.sector);
+  sv('f-subsector', d.subsector);
+  sv('f-nivel',  d.nivel);
+  setRadio('f-altura', d.altura);
+  sv('f-ubicref', d.ubicRef);
+  setRadio('f-acces', d.accesibilidad);
+  setRadio('f-sistema', d.sistema);
+  sv('f-tipo-sist', d.tipoSistema);
+  setRadio('f-pos', d.posNormal);
+  sv('f-conecta', d.conecta);
+  sv('f-relacionadas', d.relacionadas);
+  sv('f-maniobra', d.maniobra);
+  sv('f-fluido', d.fluido);
+  sv('f-presion', d.presion);
+  sv('f-temp',   d.temperatura);
+  sv('f-ps',     d.ps);
+  setRadio('f-accion', d.accionamiento);
+  setRadio('f-giro',   d.giro);
+  sv('f-vueltas', d.vueltas);
+  sv('f-obs-tec', d.obsTecnicas);
+  setRadio('f-loto',   d.loto);
+  setRadio('f-emerg',  d.emergencia);
+  setRadio('f-bypass', d.bypass);
+  sv('f-epp',    d.epp);
+  sv('f-seg',    d.seguridad);
+  sv('f-proc',   d.procedimiento);
+  setRadio('f-estado', d.estado);
+  sv('f-condicion', d.condicion);
+  setRadio('f-fuga',   d.fugas);
+  setRadio('f-cartel', d.cartel);
+  sv('f-obs-estado', d.obsEstado);
+  sv('f-fecha',  d.fecha);
+  sv('f-operario', d.operario);
+  photos = d.fotos ? [...d.fotos] : [null,null,null,null];
+  [0,1,2,3].forEach(i => {
+    const prev = document.getElementById(`prev-${i}`);
+    if (photos[i]) prev.innerHTML = `<img src="${photos[i]}" alt="foto">`;
+    else prev.innerHTML = ['📷','🏷️','🗺️','🔍'][i];
+  });
+}
+
+function clearForm() {
+  ['f-tag','f-tipo','f-diam','f-mat','f-marca','f-modelo','f-serie',
+   'f-sector','f-subsector','f-nivel','f-ubicref','f-tipo-sist',
+   'f-conecta','f-relacionadas','f-maniobra','f-fluido','f-presion',
+   'f-temp','f-ps','f-vueltas','f-obs-tec','f-epp','f-seg','f-proc',
+   'f-condicion','f-obs-estado','f-fecha','f-operario'].forEach(id => sv(id,''));
+  ['f-altura','f-acces','f-sistema','f-pos','f-accion','f-giro',
+   'f-loto','f-emerg','f-bypass','f-estado','f-fuga','f-cartel'].forEach(name => {
+    document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+      r.checked = false;
+      const p = r.closest('.radio-opt');
+      if (p) p.classList.remove('selected');
+    });
+  });
+  photos = [null,null,null,null];
+  [0,1,2,3].forEach(i => {
+    document.getElementById(`prev-${i}`).innerHTML = ['📷','🏷️','🗺️','🔍'][i];
+    const inp = document.getElementById(`photo-${i}`);
+    if (inp) inp.value = '';
+  });
+  // Set today's date
+  document.getElementById('f-fecha').value = new Date().toISOString().slice(0,10);
+}
+
+function v(id)      { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
+function sv(id,val) { const e = document.getElementById(id); if(e) e.value = val||''; }
+
+// ── ACTIONS ──
+function guardar() {
+  if (!v('f-tag'))     { toast('⚠️ Ingresá el número de válvula'); goTab(0); return; }
+  if (!v('f-sector'))  { toast('⚠️ Seleccioná el sector'); goTab(1); return; }
+  if (!getRadio('f-sistema')) { toast('⚠️ Seleccioná el sistema'); goTab(2); return; }
+
+  const data = readForm();
+  const all = loadAll();
+
+  if (editingId) {
+    const idx = all.findIndex(x => x.id === editingId);
+    if (idx >= 0) all[idx] = data; else all.push(data);
+  } else {
+    all.push(data);
+  }
+
+  saveAll(all);
+  updateCounter();
+  toast(`✅ V "${data.tag}" guardada (${all.length} total)`);
+  editingId = data.id;
+}
+
+function nueva() {
+  if (!confirm('¿Nueva ficha? Los datos no guardados se perderán.')) return;
+  editingId = null;
+  clearForm();
+  goTab(0);
+  document.getElementById('sections').scrollTo(0,0);
+  toast('Nueva ficha lista');
+}
+
+function updateCounter() {
+  const n = loadAll().length;
+  document.getElementById('counter').textContent = `${n} válvula${n!==1?'s':''}`;
+}
+
+// ── LIST MODAL ──
+function showList() {
+  const all = loadAll();
+  const body = document.getElementById('modal-body');
+
+  if (!all.length) {
+    body.innerHTML = `<div class="empty"><div class="icon">📋</div>Todavía no hay válvulas relevadas.<br>Completá la ficha y guardá.</div>`;
+  } else {
+    const sysMap = s =>
+      s && s.includes('Alta') ? 'alta' :
+      s && s.includes('Baja') ? 'baja' :
+      s && s.includes('Gas')  ? 'gas'  : 'otro';
+
+    body.innerHTML = all.map(v => `
+      <div class="v-card" onclick="editValve('${v.id}')">
+        <div class="v-thumb">
+          ${v.fotos&&v.fotos[0] ? `<img src="${v.fotos[0]}" alt="">` : '🔧'}
+        </div>
+        <div class="v-info">
+          <div class="v-tag">${v.tag || '—'}</div>
+          <div class="v-desc">${v.conecta ? v.conecta.substring(0,50)+'…' : v.tipo || '—'}</div>
+          <div class="v-sector">${[v.sector,v.subsector].filter(Boolean).join(' · ')}</div>
+        </div>
+        <span class="v-badge ${sysMap(v.sistema)}">${
+          v.sistema ? v.sistema.split(' ')[0] : '?'
+        }</span>
+      </div>`).join('');
+  }
+  document.getElementById('modal-bg').classList.add('show');
+}
+
+function editValve(id) {
+  const all = loadAll();
+  const v = all.find(x => x.id === id);
+  if (!v) return;
+  editingId = id;
+  fillForm(v);
+  closeModal();
+  goTab(0);
+  toast(`Editando: ${v.tag}`);
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+
+document.getElementById('modal-bg').addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-bg')) closeModal();
+});
+
+// ── EXPORT ──
+function exportJSON() {
+  const all = loadAll();
+  if (!all.length) { toast('No hay datos para exportar'); return; }
+  download('relevamiento_valvulas.json', JSON.stringify(all, null, 2), 'application/json');
+  toast('JSON descargado ✓');
+}
+
+function exportCSV() {
+  const all = loadAll();
+  if (!all.length) { toast('No hay datos para exportar'); return; }
+  const cols = ['tag','tipo','diametro','material','marca','modelo','sector','subsector',
+    'nivel','altura','ubicRef','accesibilidad','sistema','tipoSistema','posNormal',
+    'conecta','relacionadas','fluido','presion','temperatura','accionamiento','vueltas',
+    'loto','emergencia','bypass','epp','seguridad','estado','condicion','fugas',
+    'obsEstado','fecha','operario'];
+  const esc = v => `"${String(v||'').replace(/"/g,'""')}"`;
+  const csv = [cols.map(esc).join(','),
+    ...all.map(r => cols.map(c => esc(r[c])).join(','))
+  ].join('\n');
+  download('relevamiento_valvulas.csv', csv, 'text/csv');
+  toast('CSV descargado ✓');
+}
+
+function download(name, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content],{type}));
+  a.download = name;
+  a.click();
+}
+
+function borrarTodo() {
+  if (!confirm('¿Borrar TODAS las fichas guardadas? Esta acción no se puede deshacer.')) return;
+  localStorage.removeItem(STORE);
+  updateCounter();
+  closeModal();
+  toast('Datos borrados');
+}
+
+// ── TOAST ──
+let toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── INIT ──
+updateCounter();
+clearForm();
+</script>
+</body>
+</html>
